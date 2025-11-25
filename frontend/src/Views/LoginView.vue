@@ -1,13 +1,33 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { ref } from 'vue'
+import { supabase } from '../lib/supabaseClient'
 
+const router = useRouter()
 const email = ref('')
 const password = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
 
-const handleLogin = () => {
-  console.log("Login clicked", email.value, password.value)
-  // Add Supabase login logic here later
+const handleLogin = async () => {
+  loading.value = true
+  errorMessage.value = ''
+  
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value,
+    })
+
+    if (error) throw error
+
+    // Redirect to dashboard on success
+    router.push('/dashboard')
+  } catch (error) {
+    errorMessage.value = error.message
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -30,6 +50,7 @@ const handleLogin = () => {
       </div>
 
       <!-- Form Section -->
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="email">Email address</label>
@@ -56,7 +77,9 @@ const handleLogin = () => {
           />
         </div>
 
-        <button type="submit" class="login-btn">Log In</button>
+        <button type="submit" class="login-btn" :disabled="loading">
+          {{ loading ? 'Logging in...' : 'Log In' }}
+        </button>
       </form>
     </div>
 
@@ -202,5 +225,15 @@ input::placeholder {
 
 .signup-link:hover {
   text-decoration: underline;
+}
+
+.error-message {
+  color: #dc2626;
+  background-color: #fee2e2;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
 }
 </style>

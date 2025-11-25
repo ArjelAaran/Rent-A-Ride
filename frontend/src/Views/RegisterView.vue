@@ -1,5 +1,60 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { supabase } from '../lib/supabaseClient'
+
+const router = useRouter()
+
+const firstName = ref('')
+const lastName = ref('')
+const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
+
+const handleRegister = async () => {
+  if (password.value !== confirmPassword.value) {
+    errorMessage.value = "Passwords do not match"
+    return
+  }
+
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    // 1. Sign up with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email.value,
+      password: password.value,
+    })
+
+    if (authError) throw authError
+
+    if (authData.user) {
+      // 2. Insert into public.users table
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert([
+          {
+            user_id: authData.user.id,
+            full_name: `${firstName.value} ${lastName.value}`,
+            user_email: email.value,
+            role: 'renter', // Default role
+          }
+        ])
+
+      if (dbError) throw dbError
+
+      // Redirect to login
+      router.push('/login')
+    }
+  } catch (error) {
+    errorMessage.value = error.message
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -13,34 +68,37 @@ import { RouterLink } from 'vue-router'
     </div>
 
     <div class="form-card">
-      <form @submit.prevent>
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      <form @submit.prevent="handleRegister">
         <div class="name-row">
           <div class="form-group">
             <label for="firstName">First Name</label>
-            <input type="text" id="firstName" placeholder="John" />
+            <input type="text" id="firstName" v-model="firstName" placeholder="John" required />
           </div>
           <div class="form-group">
             <label for="lastName">Last Name</label>
-            <input type="text" id="lastName" placeholder="Doe" />
+            <input type="text" id="lastName" v-model="lastName" placeholder="Doe" required />
           </div>
         </div>
 
         <div class="form-group">
           <label for="email">Email address</label>
-          <input type="email" id="email" placeholder="you@example.com" />
+          <input type="email" id="email" v-model="email" placeholder="you@example.com" required />
         </div>
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="password" placeholder="........" />
+          <input type="password" id="password" v-model="password" placeholder="........" required />
         </div>
 
         <div class="form-group">
           <label for="confirmPassword">Confirm Password</label>
-          <input type="password" id="confirmPassword" placeholder="........" />
+          <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder="........" required />
         </div>
 
-        <button type="submit" class="submit-btn">Sign Up</button>
+        <button type="submit" class="submit-btn" :disabled="loading">
+          {{ loading ? 'Signing up...' : 'Sign Up' }}
+        </button>
       </form>
     </div>
 
@@ -56,7 +114,7 @@ import { RouterLink } from 'vue-router'
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 90vh;
   background-color: #fff;
   font-family: sans-serif;
   padding: 2rem;
@@ -170,5 +228,15 @@ input::placeholder {
 
 .login-link:hover {
   text-decoration: underline;
+}
+
+.error-message {
+  color: #dc2626;
+  background-color: #fee2e2;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
 }
 </style>
