@@ -18,7 +18,7 @@ const router = createRouter({
   {
       path: '/book/:carId',
       name: 'booking',
-      component: () => import('../views/BookingView.vue') // <--- NEW ROUTE
+      component: () => import('../views/BookingView.vue') 
     },
   ]
 })
