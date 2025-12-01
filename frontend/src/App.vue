@@ -5,57 +5,57 @@ import { RouterLink, useRouter } from 'vue-router'
 const router = useRouter()
 const isLoggedIn = ref(false)
 
-// Function to check login status based on local storage
 const checkAuthStatus = () => {
-    // Check if user data exists in local storage
     const token = localStorage.getItem('userToken')
     isLoggedIn.value = !!token
 }
 
-onMounted(() => {
-    checkAuthStatus()
-    // NOTE: For a persistent real-time solution, you'd use a more robust
-    // library, but this basic check covers the requirement.
-})
-
 const handleLogout = () => {
-    // Clear local storage on logout
     localStorage.removeItem('userToken')
     localStorage.removeItem('user')
-    isLoggedIn.value = false // Update state immediately
+    isLoggedIn.value = false 
     router.push('/login')
 }
+
+onMounted(() => {
+    checkAuthStatus()
+})
+router.afterEach(() => {
+    checkAuthStatus();
+})
 </script>
 
 <template>
-  <header>
-    <nav class="navbar">
-      <RouterLink to="/" class="logo">RentARide</RouterLink>
-      <div class="nav-links">
-        <template v-if="isLoggedIn">
-          <RouterLink to="/dashboard">Home</RouterLink>
-          <RouterLink to="/about" class="nav-item">About Us</RouterLink>
-          <RouterLink to="/contact" class="nav-item">Contact Us</RouterLink>
-          <RouterLink to="/dashboard" class="nav-item">Profile</RouterLink>
-          <button @click="handleLogout" class="nav-btn logout-btn">Log out</button>
-        </template>
-        <template v-else>
-          <RouterLink to="/">Home</RouterLink>
-          <RouterLink to="/about" class="nav-item">About Us</RouterLink>
-          <RouterLink to="/contact" class="nav-item">Contact Us</RouterLink>
-          <RouterLink to="/login" class="nav-item">Login</RouterLink>
-          <RouterLink to="/register" class="nav-btn">Register</RouterLink>
-        </template>
-      </div>
-    </nav>
-  </header>
+  <div id="app-wrapper">
+    <header>
+      <nav class="navbar">
+        <RouterLink to="/" class="logo">RentARide</RouterLink>
+        <div class="nav-links">
+          <template v-if="isLoggedIn">
+            <RouterLink to="/" class="nav-item">Home</RouterLink>
+            <RouterLink to="/about" class="nav-item">About Us</RouterLink>
+            <RouterLink to="/contact" class="nav-item">Contact Us</RouterLink>
+            <RouterLink to="/dashboard" class="nav-item">Profile</RouterLink>
+            <button @click="handleLogout" class="nav-btn logout-btn">Log out</button>
+          </template>
+          <template v-else>
+            <RouterLink to="/">Home</RouterLink>
+            <RouterLink to="/about" class="nav-item">About Us</RouterLink>
+            <RouterLink to="/contact" class="nav-item">Contact Us</RouterLink>
+            <RouterLink to="/login" class="nav-item">Login</RouterLink>
+            <RouterLink to="/register" class="nav-btn">Register</RouterLink>
+          </template>
+        </div>
+      </nav>
+    </header>
 
-  <RouterView />
+    <RouterView />
+  </div>
 </template>
 
 <style>
-/* GLOBAL STYLES */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
 
 .navbar {
   display: flex;
