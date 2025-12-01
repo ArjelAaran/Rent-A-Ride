@@ -1,10 +1,8 @@
-// backend/controllers/carController.js
 import pool from '../db.js';
 
-// GET /api/cars (CRUD: Read - Car List)
+// --- READ: Get all available cars (Used by HomeView.vue) ---
 export const getAvailableCars = async (req, res) => {
     try {
-        // Fetches data to display on HomeView.vue
         const [cars] = await pool.query('SELECT car_id, model, make, year, type, daily_rate, image_url FROM cars WHERE is_available = TRUE');
         res.json(cars);
     } catch (error) {
@@ -13,14 +11,39 @@ export const getAvailableCars = async (req, res) => {
     }
 };
 
-// POST /api/cars/rentals (CRUD: Create - Rental Booking)
+// --- READ: Get single car details by ID (Used by BookingView.vue) ---
+export const getCarDetails = async (req, res) => {
+    const { carId } = req.params; // Get carId from the URL parameter
+
+    // Query to select necessary details for the booking form
+    const sql = 'SELECT car_id, make, model, daily_rate, image_url FROM cars WHERE car_id = ?';
+
+    try {
+        const [results] = await pool.query(sql, [carId]);
+        
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Car not found.' });
+        }
+
+        // Return the single car object
+        res.status(200).json(results[0]);
+
+    } catch (error) {
+        console.error('Error fetching car details:', error);
+        res.status(500).json({ message: 'Server error while fetching car details.' });
+    }
+};
+
+// --- CREATE: Create a new rental booking (Used by BookingView.vue form submission) ---
 export const createRental = async (req, res) => {
-    // user_id is passed from the token via the 'protect' middleware
+    // req.user.id is populated by the authMiddleware from the JWT token
     const user_id = req.user.id; 
     const { carId, startDate, endDate, totalCost } = req.body;
 
     try {
-        // Insert into RENTALS table
+        // Log the received data for debugging
+        console.log(`Creating rental for User ${user_id} and Car ${carId} with cost ${totalCost}`);
+
         const [result] = await pool.query(
             'INSERT INTO rentals (user_id, car_id, start_date, end_date, total_cost, status) VALUES (?, ?, ?, ?, ?, ?)',
             [user_id, carId, startDate, endDate, totalCost, 'pending']
@@ -37,17 +60,16 @@ export const createRental = async (req, res) => {
     }
 };
 
-// GET /api/cars/rentals/:userId (CRUD: Read - User Rentals)
+// --- READ: Get rentals for a specific user (Used by CustomerDashboardView.vue) ---
 export const getUserRentals = async (req, res) => {
     const user_id = req.params.userId;
 
-    // Security check: ensure the user fetching the rentals is the logged-in user
+    // Security Check: Prevent a user from viewing another user's rentals
     if (user_id != req.user.id) {
         return res.status(403).json({ message: 'Forbidden access to another user\'s rentals.' });
     }
 
     try {
-        // Joins rentals with car data to display full details on Dashboard
         const [rentals] = await pool.query(
             `SELECT 
                 r.rental_id, r.start_date, r.end_date, r.total_cost, r.status, 
