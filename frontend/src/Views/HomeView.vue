@@ -1,27 +1,36 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import apiClient from '../lib/apiClient' // NEW IMPORT
+import { useRouter } from 'vue-router'; 
+import apiClient from '../lib/apiClient' 
 
-// Hardcoded data is replaced by dynamic refs
+const router = useRouter(); 
 const cars = ref([]);
 const loading = ref(true);
 const error = ref(null);
 
+const handleRentCar = (carId) => {
+    const token = localStorage.getItem('userToken');
+
+    if (!token) {
+        alert('Please log in to proceed with the rental booking.');
+        router.push('/login');
+    } else {
+        router.push(`/book/${carId}`); 
+    }
+}
+
 onMounted(async () => {
     try {
-        // --- NEW API CALL ---
         const response = await apiClient.get('/cars'); // GET /api/cars
         cars.value = response.data.map(car => ({
             id: car.car_id,
             name: `${car.make} ${car.model}`,
-            // Format price for display
             price: `₱${car.daily_rate.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 
             type: car.type,
             image: car.image_url,
         }));
-        // --- END NEW API CALL ---
     } catch (err) {
-        error.value = 'Failed to fetch car data.';
+        error.value = 'Failed to fetch car data. Check backend connection.';
         console.error(err);
     } finally {
         loading.value = false;
@@ -40,12 +49,17 @@ onMounted(async () => {
         <div class="card-body">
           <h3>{{ car.name }}</h3>
           <p class="price">{{ car.price }} <span class="per-day">/ day</span></p>
-          <button class="book-btn">Rent This Car</button>
+          <button 
+              class="book-btn" 
+              @click="handleRentCar(car.id)"> 
+              Rent This Car
+          </button>
         </div>
       </div>
     </div>
   </section>
 </template>
+
 <style scoped>
 /* HERO */
 .hero {
