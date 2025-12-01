@@ -1,24 +1,29 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { supabase } from './lib/supabaseClient'
 
 const router = useRouter()
 const isLoggedIn = ref(false)
 
-onMounted(() => {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    isLoggedIn.value = !!session
-  })
+// Function to check login status based on local storage
+const checkAuthStatus = () => {
+    // Check if user data exists in local storage
+    const token = localStorage.getItem('userToken')
+    isLoggedIn.value = !!token
+}
 
-  supabase.auth.onAuthStateChange((_, session) => {
-    isLoggedIn.value = !!session
-  })
+onMounted(() => {
+    checkAuthStatus()
+    // NOTE: For a persistent real-time solution, you'd use a more robust
+    // library, but this basic check covers the requirement.
 })
 
-const handleLogout = async () => {
-  await supabase.auth.signOut()
-  router.push('/login')
+const handleLogout = () => {
+    // Clear local storage on logout
+    localStorage.removeItem('userToken')
+    localStorage.removeItem('user')
+    isLoggedIn.value = false // Update state immediately
+    router.push('/login')
 }
 </script>
 

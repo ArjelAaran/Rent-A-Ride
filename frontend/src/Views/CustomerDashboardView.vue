@@ -1,73 +1,109 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '../lib/supabaseClient'
+import apiClient from '../lib/apiClient' // NEW IMPORT
 
 const router = useRouter()
 const user = ref(null)
+const rentals = ref([]) // NEW state for rental data
 const loading = ref(true)
+const rentalsLoading = ref(true)
+
+// Function to fetch rentals using the API client
+const fetchRentals = async (userId) => {
+    try {
+        // --- NEW API CALL ---
+        const response = await apiClient.get(`/cars/rentals/${userId}`); // GET /api/cars/rentals/:userId
+        rentals.value = response.data;
+        // --- END NEW API CALL ---
+    } catch (error) {
+        console.error('Error fetching rentals:', error.response ? error.response.data : error.message);
+        // If unauthorized (401/403), force logout
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+             handleLogout(); 
+        }
+    } finally {
+        rentalsLoading.value = false;
+    }
+}
 
 onMounted(async () => {
-  try {
-    const { data: { user: authUser }, error } = await supabase.auth.getUser()
-    if (error) throw error
-    
-    if (authUser) {
-      user.value = authUser
-      // You could fetch more user profile data from your 'users' table here if needed
+    // 1. Check for stored session data
+    const userData = localStorage.getItem('user');
+
+    if (userData) {
+        try {
+            user.value = JSON.parse(userData);
+            // 2. Fetch rental data
+            await fetchRentals(user.value.id);
+
+        } catch (e) {
+            console.error('Invalid user data in storage:', e);
+            handleLogout();
+        }
     } else {
-      router.push('/login')
+        router.push('/login'); // No session, force login
     }
-  } catch (error) {
-    console.error('Error fetching user:', error.message)
-    router.push('/login')
-  } finally {
-    loading.value = false
-  }
+    loading.value = false;
 })
 
-const handleLogout = async () => {
-  await supabase.auth.signOut()
-  router.push('/login')
+const handleLogout = () => {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('user');
+    router.push('/login')
 }
 </script>
 
 <template>
-  <div class="dashboard-container">
-    <div v-if="loading" class="loading">Loading...</div>
-    <div v-else class="content">
-      <header class="dashboard-header">
-        <h1>Customer Dashboard</h1>
-        <button @click="handleLogout" class="logout-btn">Log Out</button>
-      </header>
-      
-      <main>
-        <div class="welcome-card">
-          <h2>Welcome back!</h2>
-          <p>You are logged in as: {{ user?.email }}</p>
-        </div>
-        
-        <!-- Add more dashboard content here -->
-        <div class="dashboard-grid">
-          <div class="card">
-            <h3>My Rentals</h3>
-            <p>View your active and past rentals.</p>
+  <div class="card full-width">
+            <h3>My Rentals (View 2/2 for database data)</h3>
+            <div v-if="rentalsLoading">Loading rentals...</div>
+            <div v-else-if="rentals.length === 0">You have no recorded rentals.</div>
+            <table v-else class="rentals-table">
+                <thead>
+                    <tr>
+                        <th>Car</th>
+                        <th>Dates</th>
+                        <th>Total Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="rental in rentals" :key="rental.rental_id">
+                        <td>{{ rental.make }} {{ rental.model }} ({{ rental.year }})</td>
+                        <td>{{ rental.start_date }} to {{ rental.end_date }}</td>
+                        <td>₱{{ rental.total_cost.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</td>
+                        <td><span :class="['status-' + rental.status]">{{ rental.status }}</span></td>
+                    </tr>
+                </tbody>
+            </table>
           </div>
-          <div class="card">
-            <h3>Available Cars</h3>
-            <p>Browse cars available for rent.</p>
-          </div>
-          <div class="card">
-            <h3>Profile Settings</h3>
-            <p>Update your personal information.</p>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
-</template>
+  </template>
 
 <style scoped>
+/* Add the new table styles to the bottom of the style block */
+.full-width {
+    grid-column: 1 / -1;
+}
+.rentals-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+.rentals-table th, .rentals-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+.rentals-table th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+    color: #333;
+}
+.status-active { color: #059669; font-weight: bold; }
+.status-pending { color: #f59e0b; }
+.status-completed { color: #6b7280; }
+.status-cancelled { color: #dc2626; }
 .dashboard-container {
   padding: 2rem;
   max-width: 1200px;

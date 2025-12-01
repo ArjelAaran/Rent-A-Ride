@@ -1,38 +1,51 @@
 <script setup>
-// HARDCODED DATA FOR MVP (We replace this with Supabase later if time permits)
-const cars = [
-  { id: 1, name: "Toyota Vios", price: "₱1,500", type: "Sedan", image: "https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=600" },
-  { id: 2, name: "Ford Territory", price: "₱3,500", type: "SUV", image: "https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&cs=tinysrgb&w=600" },
-  { id: 3, name: "Honda Civic", price: "₱2,500", type: "Sedan", image: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600" }
-];
+import { ref, onMounted } from 'vue'
+import apiClient from '../lib/apiClient' // NEW IMPORT
+
+// Hardcoded data is replaced by dynamic refs
+const cars = ref([]);
+const loading = ref(true);
+const error = ref(null);
+
+onMounted(async () => {
+    try {
+        // --- NEW API CALL ---
+        const response = await apiClient.get('/cars'); // GET /api/cars
+        cars.value = response.data.map(car => ({
+            id: car.car_id,
+            name: `${car.make} ${car.model}`,
+            // Format price for display
+            price: `₱${car.daily_rate.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 
+            type: car.type,
+            image: car.image_url,
+        }));
+        // --- END NEW API CALL ---
+    } catch (err) {
+        error.value = 'Failed to fetch car data.';
+        console.error(err);
+    } finally {
+        loading.value = false;
+    }
+});
 </script>
 
 <template>
-  <div class="home-container">
-    <section class="hero">
-      <div class="hero-content">
-        <h1>Drive Your Dream Today</h1>
-        <p>Premium rentals at economy prices.</p>
-        <RouterLink to="/register" class="cta-btn">Book Now</RouterLink>
-      </div>
-    </section>
-
-    <section class="fleet">
-      <h2>Our Fleet</h2>
-      <div class="grid">
-        <div v-for="car in cars" :key="car.id" class="card">
-          <img :src="car.image" alt="Car" />
-          <div class="card-body">
-            <h3>{{ car.name }}</h3>
-            <p class="price">{{ car.price }} <span class="per-day">/ day</span></p>
-            <button class="book-btn">Rent This Car</button>
-          </div>
+  <section class="fleet">
+    <h2>Our Fleet</h2>
+    <div v-if="loading">Loading available cars...</div>
+    <div v-else-if="error" class="error-message">{{ error }}</div>
+    <div v-else class="grid">
+      <div v-for="car in cars" :key="car.id" class="card">
+        <img :src="car.image" alt="Car" />
+        <div class="card-body">
+          <h3>{{ car.name }}</h3>
+          <p class="price">{{ car.price }} <span class="per-day">/ day</span></p>
+          <button class="book-btn">Rent This Car</button>
         </div>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
 </template>
-
 <style scoped>
 /* HERO */
 .hero {

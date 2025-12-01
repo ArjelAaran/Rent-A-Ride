@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { supabase } from '../lib/supabaseClient'
+import apiClient from '../lib/apiClient' // NEW IMPORT
 
 const router = useRouter()
 
@@ -14,46 +14,37 @@ const loading = ref(false)
 const errorMessage = ref('')
 
 const handleRegister = async () => {
-  if (password.value !== confirmPassword.value) {
-    errorMessage.value = "Passwords do not match"
-    return
-  }
-
-  loading.value = true
-  errorMessage.value = ''
-
-  try {
-    // 1. Sign up with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email.value,
-      password: password.value,
-    })
-
-    if (authError) throw authError
-
-    if (authData.user) {
-      // 2. Insert into public.users table
-      const { error: dbError } = await supabase
-        .from('users')
-        .insert([
-          {
-            user_id: authData.user.id,
-            full_name: `${firstName.value} ${lastName.value}`,
-            user_email: email.value,
-            role: 'renter', // Default role
-          }
-        ])
-
-      if (dbError) throw dbError
-
-      // Redirect to login
-      router.push('/login')
+    if (password.value !== confirmPassword.value) {
+        errorMessage.value = "Passwords do not match"
+        return
     }
-  } catch (error) {
-    errorMessage.value = error.message
-  } finally {
-    loading.value = false
-  }
+
+    loading.value = true
+    errorMessage.value = ''
+
+    try {
+        // --- NEW API CALL ---
+        const response = await apiClient.post('/auth/register', {
+            firstName: firstName.value,
+            lastName: lastName.value,
+            email: email.value,
+            password: password.value,
+        })
+        // --- END NEW API CALL ---
+
+        // Store token/user data in local storage
+        localStorage.setItem('userToken', response.data.token)
+        localStorage.setItem('user', JSON.stringify(response.data.user))
+
+        // Redirect to dashboard (or login for full flow)
+        router.push('/dashboard')
+
+    } catch (error) {
+        console.error('Registration error:', error.response ? error.response.data : error.message)
+        errorMessage.value = error.response?.data?.message || 'Registration failed. Please try again.'
+    } finally {
+        loading.value = false
+    }
 }
 </script>
 

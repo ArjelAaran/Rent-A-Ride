@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
 import { ref } from 'vue'
-import { supabase } from '../lib/supabaseClient'
+import apiClient from '../lib/apiClient'
 
 const router = useRouter()
 const email = ref('')
@@ -10,24 +10,29 @@ const loading = ref(false)
 const errorMessage = ref('')
 
 const handleLogin = async () => {
-  loading.value = true
-  errorMessage.value = ''
-  
-  try {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.value,
-      password: password.value,
-    })
+    loading.value = true
+    errorMessage.value = ''
+    
+    try {
+        // --- NEW API CALL ---
+        const response = await apiClient.post('/auth/login', {
+            email: email.value,
+            password: password.value,
+        })
+        // --- END NEW API CALL ---
 
-    if (error) throw error
+        // Store token/user data in local storage
+        localStorage.setItem('userToken', response.data.token)
+        localStorage.setItem('user', JSON.stringify(response.data.user))
 
-    // Redirect to dashboard on success
-    router.push('/dashboard')
-  } catch (error) {
-    errorMessage.value = error.message
-  } finally {
-    loading.value = false
-  }
+        // Redirect to dashboard on success
+        router.push('/dashboard')
+    } catch (error) {
+        console.error('Login error:', error.response ? error.response.data : error.message)
+        errorMessage.value = error.response?.data?.message || 'Login failed. Check your email and password.'
+    } finally {
+        loading.value = false
+    }
 }
 </script>
 
