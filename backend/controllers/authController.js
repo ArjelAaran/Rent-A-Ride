@@ -1,4 +1,3 @@
-// backend/controllers/authController.js
 import pool from '../db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -8,8 +7,24 @@ const generateToken = (id) => {
         expiresIn: '1h',
     });
 };
+export const getUser = async (req, res) => { 
+    const user_id = req.user.id; 
 
-// POST /api/auth/register (CRUD: Create - User)
+    try {
+        const [users] = await pool.query('SELECT user_id, first_name, last_name, email FROM users WHERE user_id = ?', [user_id]);
+        const user = users[0];
+
+        if (user) {
+            res.status(200).json(user);
+        } else {
+            res.status(404).json({ message: 'User not found.' });
+        }
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({ message: 'Server error fetching user data.' });
+    }
+};
+
 export const registerUser = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
@@ -19,11 +34,9 @@ export const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Hash password
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
-        // Insert user into the database
         const [result] = await pool.query(
             'INSERT INTO users (first_name, last_name, email, password_hash) VALUES (?, ?, ?, ?)',
             [firstName, lastName, email, password_hash]
@@ -47,7 +60,6 @@ export const registerUser = async (req, res) => {
     }
 };
 
-// POST /api/auth/login
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
