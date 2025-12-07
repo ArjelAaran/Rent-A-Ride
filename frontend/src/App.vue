@@ -36,6 +36,8 @@ router.afterEach(() => {
             <RouterLink to="/about" class="nav-item">About Us</RouterLink>
             <RouterLink to="/contact" class="nav-item">Contact Us</RouterLink>
             <RouterLink to="/dashboard" class="nav-item">Profile</RouterLink>
+            <RouterLink to="/dashboard" class="nav-item">Dashboard</RouterLink>
+            <RouterLink to="/profile" class="nav-item">Edit Profile</RouterLink>
             <button @click="handleLogout" class="nav-btn logout-btn">Log out</button>
           </template>
           <template v-else>
