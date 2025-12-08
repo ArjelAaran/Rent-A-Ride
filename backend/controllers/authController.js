@@ -87,3 +87,54 @@ export const loginUser = async (req, res) => {
         res.status(500).json({ message: 'Server error during login' });
     }
 };
+
+export const updateProfile = async (req, res) => {
+    const user_id = req.user.id;
+    const { firstName, lastName, email, phoneNumber } = req.body;
+    const driversLicensePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+    try {
+        const [emailCheck] = await pool.query(
+            'SELECT user_id FROM users WHERE email = ? AND user_id != ?', 
+            [email, user_id]
+        );
+
+        if (emailCheck.length > 0) {
+            return res.status(400).json({ message: 'Email is already in use.' });
+        }
+
+        let sql = 'UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ?';
+        let params = [firstName, lastName, email, phoneNumber];
+
+        if (driversLicensePath) {
+            sql += ', drivers_license_url = ?';
+            params.push(driversLicensePath);
+        }
+
+        sql += ' WHERE user_id = ?';
+        params.push(user_id);
+
+        await pool.query(sql, params);
+
+        const [updatedUser] = await pool.query(
+            'SELECT user_id, first_name, last_name, email, phone_number, drivers_license_url FROM users WHERE user_id = ?',
+            [user_id]
+        );
+
+        res.json({
+            message: 'Profile updated successfully',
+            user: {
+                id: updatedUser[0].user_id,
+                email: updatedUser[0].email,
+                firstName: updatedUser[0].first_name,
+                lastName: updatedUser[0].last_name,
+                phoneNumber: updatedUser[0].phone_number,
+                driversLicenseUrl: updatedUser[0].drivers_license_url
+            }
+        });
+
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ message: 'Server error updating profile' });
+    }
+};

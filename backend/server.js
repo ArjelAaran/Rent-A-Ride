@@ -3,11 +3,18 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import carRoutes from './routes/carRoutes.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(cors({
     origin: 'http://localhost:5173' 
@@ -21,8 +28,8 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
-app.use('/api/auth', authRoutes); // Auth: /register, /login
-app.use('/api/cars', carRoutes); // Cars/Rentals: /, /rentals, /rentals/:userId
+app.use('/api/auth', authRoutes); 
+app.use('/api/cars', carRoutes); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
