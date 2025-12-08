@@ -4,14 +4,18 @@ import jwt from 'jsonwebtoken';
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
+        expiresIn: '30d', 
     });
 };
+
 export const getUser = async (req, res) => { 
     const user_id = req.user.id; 
 
     try {
-        const [users] = await pool.query('SELECT user_id, first_name, last_name, email FROM users WHERE user_id = ?', [user_id]);
+        const [users] = await pool.query(
+            'SELECT user_id, first_name, last_name, email, phone_number, drivers_license_url FROM users WHERE user_id = ?', 
+            [user_id]
+        );
         const user = users[0];
 
         if (user) {
@@ -64,7 +68,7 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const [users] = await pool.query('SELECT user_id, email, first_name, password_hash FROM users WHERE email = ?', [email]);
+        const [users] = await pool.query('SELECT user_id, email, first_name, last_name, phone_number, drivers_license_url, password_hash FROM users WHERE email = ?', [email]);
         const user = users[0];
 
         if (user && (await bcrypt.compare(password, user.password_hash))) {
@@ -75,7 +79,10 @@ export const loginUser = async (req, res) => {
                 user: {
                     id: user.user_id,
                     email: user.email,
-                    firstName: user.first_name
+                    firstName: user.first_name,
+                    lastName: user.last_name,
+                    phoneNumber: user.phone_number,
+                    driversLicenseUrl: user.drivers_license_url
                 },
                 token: token,
             });
