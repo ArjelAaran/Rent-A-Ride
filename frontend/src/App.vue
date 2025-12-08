@@ -52,13 +52,33 @@ router.afterEach(() => {
     </header>
 
     <RouterView />
+    
+  </div>
+</template>
+<template>
+  <div id="app-wrapper">
+    <header>
+      </header>
+
+    <div class="main-content">
+        <RouterView />
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 RentARide Inc. All rights reserved.</p>
+            <div class="footer-links">
+                <RouterLink to="/terms">Terms & Conditions</RouterLink>
+                <RouterLink to="/faq">FAQs</RouterLink>
+                <RouterLink to="/contact">Contact Support</RouterLink>
+            </div>
+        </div>
+    </footer>
   </div>
 </template>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-
-
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -97,5 +117,48 @@ router.afterEach(() => {
 }
 .logout-btn:hover {
   background-color: #b91c1c;
+}
+
+#app-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; 
+}
+
+.main-content {
+    flex: 1; 
+}
+
+.app-footer {
+    background-color: #1f2937;
+    color: white;
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+}
+
+.footer-links a {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: white;
 }
 </style>

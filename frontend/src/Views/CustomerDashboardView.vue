@@ -1,24 +1,20 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import apiClient from '../lib/apiClient' // NEW IMPORT
+import apiClient from '../lib/apiClient' 
 
 const router = useRouter()
 const user = ref(null)
-const rentals = ref([]) // NEW state for rental data
+const rentals = ref([]) 
 const loading = ref(true)
 const rentalsLoading = ref(true)
 
-// Function to fetch rentals using the API client
 const fetchRentals = async (userId) => {
     try {
-        // --- NEW API CALL ---
-        const response = await apiClient.get(`/cars/rentals/${userId}`); // GET /api/cars/rentals/:userId
+        const response = await apiClient.get(`/cars/rentals/${userId}`);
         rentals.value = response.data;
-        // --- END NEW API CALL ---
     } catch (error) {
         console.error('Error fetching rentals:', error.response ? error.response.data : error.message);
-        // If unauthorized (401/403), force logout
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
              handleLogout(); 
         }
@@ -28,13 +24,11 @@ const fetchRentals = async (userId) => {
 }
 
 onMounted(async () => {
-    // 1. Check for stored session data
     const userData = localStorage.getItem('user');
 
     if (userData) {
         try {
             user.value = JSON.parse(userData);
-            // 2. Fetch rental data
             await fetchRentals(user.value.id);
 
         } catch (e) {
@@ -42,7 +36,7 @@ onMounted(async () => {
             handleLogout();
         }
     } else {
-        router.push('/login'); // No session, force login
+        router.push('/login'); 
     }
     loading.value = false;
 })
@@ -81,7 +75,6 @@ const handleLogout = () => {
   </template>
 
 <style scoped>
-/* Add the new table styles to the bottom of the style block */
 .full-width {
     grid-column: 1 / -1;
 }

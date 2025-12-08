@@ -21,7 +21,7 @@ const handleRentCar = (carId) => {
 
 onMounted(async () => {
     try {
-        const response = await apiClient.get('/cars'); // GET /api/cars
+        const response = await apiClient.get('/cars'); 
         cars.value = response.data.map(car => ({
             id: car.car_id,
             name: `${car.make} ${car.model}`,
@@ -61,7 +61,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* HERO */
 .hero {
   background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.pexels.com/photos/707046/pexels-photo-707046.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
   background-size: cover;
@@ -77,7 +76,6 @@ onMounted(async () => {
 .hero p { font-size: 1.5rem; margin-bottom: 2rem; }
 .cta-btn { background: #ff6600; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; }
 
-/* FLEET */
 .fleet { padding: 4rem 2rem; text-align: center; }
 .fleet h2 { margin-bottom: 2rem; font-size: 2rem; color: #333; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; }

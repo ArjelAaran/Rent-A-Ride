@@ -14,18 +14,14 @@ const handleLogin = async () => {
     errorMessage.value = ''
     
     try {
-        // --- NEW API CALL ---
         const response = await apiClient.post('/auth/login', {
             email: email.value,
             password: password.value,
         })
-        // --- END NEW API CALL ---
 
-        // Store token/user data in local storage
         localStorage.setItem('userToken', response.data.token)
         localStorage.setItem('user', JSON.stringify(response.data.user))
 
-        // Redirect to dashboard on success
         router.push('/dashboard')
     } catch (error) {
         console.error('Login error:', error.response ? error.response.data : error.message)
@@ -40,10 +36,8 @@ const handleLogin = async () => {
   <div class="login-container">
     <div class="login-card">
       
-      <!-- Header Section -->
       <div class="header">
         <div class="icon-circle">
-          <!-- Simple Car Icon SVG -->
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
             <circle cx="7" cy="17" r="2" />
@@ -54,7 +48,6 @@ const handleLogin = async () => {
         <p class="subtitle">Log in to continue your journey.</p>
       </div>
 
-      <!-- Form Section -->
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
@@ -88,7 +81,6 @@ const handleLogin = async () => {
       </form>
     </div>
 
-    <!-- Footer Section -->
     <div class="footer-text">
       Don't have an account? <RouterLink to="/register" class="signup-link">Sign up</RouterLink>
     </div>
@@ -96,28 +88,23 @@ const handleLogin = async () => {
 </template>
 
 <style scoped>
-/* Main Layout */
 .login-container {
-  min-height: 90vh; /* Takes up full screen height minus nav */
+  min-height: 90vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #fcfcfc; /* Very light background */
+  background-color: #fcfcfc; 
 }
 
-/* Card Styling */
 .login-card {
-  background: #f8f9fa; /* Light grey card background from image */
+  background: #f8f9fa; 
   padding: 40px;
   border-radius: 12px;
   width: 100%;
   max-width: 450px;
-  /* Optional: Add subtle shadow if you want it to pop more */
-  /* box-shadow: 0 4px 20px rgba(0,0,0,0.05); */ 
 }
 
-/* Header Styling */
 .header {
   text-align: center;
   margin-bottom: 30px;
@@ -167,7 +154,7 @@ label {
 }
 
 .label-row label {
-  margin-bottom: 0; /* Remove bottom margin when in row */
+  margin-bottom: 0;
 }
 
 input {
@@ -199,7 +186,7 @@ input::placeholder {
 /* Button Styling */
 .login-btn {
   width: 100%;
-  background-color: #1a1a1a; /* Nearly black */
+  background-color: #1a1a1a; 
   color: white;
   padding: 14px;
   border: none;

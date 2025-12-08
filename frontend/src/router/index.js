@@ -7,6 +7,8 @@ import ContactView from '../Views/ContactView.vue'
 import CustomerDashboardView from '../Views/CustomerDashboardView.vue'
 import ProfileView from '../Views/ProfileView.vue';
 import BookingSuccessView from '../Views/BookingSuccessView.vue';
+import TermsView from '../Views/TermsView.vue';
+import FAQView from '../Views/FAQView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,6 +26,8 @@ const router = createRouter({
       component: () => import('../views/BookingView.vue') 
     },
     { path: '/booking-success/:id', name: 'booking-success', component: BookingSuccessView },
+  { path: '/terms', name: 'terms', component: TermsView },
+    { path: '/faq', name: 'faq', component: FAQView },
   ]
 })
 

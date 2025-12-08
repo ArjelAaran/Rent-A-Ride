@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import apiClient from '../lib/apiClient' // NEW IMPORT
+import apiClient from '../lib/apiClient' 
 
 const router = useRouter()
 
@@ -23,20 +23,16 @@ const handleRegister = async () => {
     errorMessage.value = ''
 
     try {
-        // --- NEW API CALL ---
         const response = await apiClient.post('/auth/register', {
             firstName: firstName.value,
             lastName: lastName.value,
             email: email.value,
             password: password.value,
         })
-        // --- END NEW API CALL ---
 
-        // Store token/user data in local storage
         localStorage.setItem('userToken', response.data.token)
         localStorage.setItem('user', JSON.stringify(response.data.user))
 
-        // Redirect to dashboard (or login for full flow)
         router.push('/dashboard')
 
     } catch (error) {
