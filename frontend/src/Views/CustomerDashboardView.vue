@@ -15,6 +15,27 @@ const payFile = ref(null);
 const payLoading = ref(false);
 const payMessage = ref('');
 
+const handleCancel = async (rentalId) => {
+    if (!confirm("Are you sure you want to cancel this booking?")) {
+        return;
+    }
+
+    try {
+        await apiClient.delete(`/cars/rentals/${rentalId}`);
+        
+        const rental = rentals.value.find(r => r.rental_id === rentalId);
+        if (rental) {
+            rental.status = 'cancelled';
+        }
+
+        alert("Booking cancelled.");
+        
+    } catch (error) {
+        console.error('Error cancelling:', error);
+        alert("Failed to cancel booking.");
+    }
+};
+
 const fetchRentals = async (userId) => {
     try {
         const response = await apiClient.get(`/cars/rentals/${userId}`);
@@ -112,14 +133,23 @@ const handleLogout = () => {
                 <td>
                     <span :class="['status-' + rental.status]">{{ rental.status }}</span>
                 </td>
-                <td>
-                    <button v-if="rental.status === 'pending'" 
-                            @click="openPayModal(rental)" 
-                            class="pay-btn-small">
-                        Pay Now
-                    </button>
-                    <span v-else class="text-muted">-</span>
-                </td>
+          <td>
+    <button v-if="rental.status === 'pending'" 
+            @click="openPayModal(rental)" 
+            class="pay-btn-small">
+        Pay Now
+    </button>
+    
+    <button v-if="rental.status !== 'cancelled'" 
+            @click="handleCancel(rental.rental_id)" 
+            class="cancel-btn">
+        Cancel
+    </button>
+
+    <span v-if="rental.status === 'cancelled'" class="text-muted">
+        -
+    </span>
+</td>
             </tr>
         </tbody>
     </table>
@@ -151,6 +181,9 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
+.status-cancelled {color: #dc2626;font-weight: bold;text-transform: capitalize;}
+.cancel-btn { background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;margin-left: 8px;}
+.cancel-btn:hover { background: #b91c1c;}
 .dashboard-container { padding: 2rem; max-width: 1000px; margin: 0 auto; }
 .rentals-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
 .rentals-table th, .rentals-table td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }

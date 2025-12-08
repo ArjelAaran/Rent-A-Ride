@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer'; 
 import path from 'path';     
-import { getAvailableCars, createRental, getCarDetails, getUserRentals, getRentalById, uploadRentalPayment } from '../controllers/carController.js';
+import { getAvailableCars, createRental, getCarDetails, getUserRentals, getRentalById, uploadRentalPayment, deleteRental } from '../controllers/carController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -36,4 +36,7 @@ router.get('/rentals/:userId', protect, getUserRentals);
 router.get('/rental/:id', protect, getRentalById);
 
 router.put('/rentals/:id/pay', protect, upload.single('receipt'), uploadRentalPayment);
+
+router.delete('/rentals/:id', protect, deleteRental);
+
 export default router;

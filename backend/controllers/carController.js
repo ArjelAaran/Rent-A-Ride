@@ -159,3 +159,25 @@ export const uploadRentalPayment = async (req, res) => {
         res.status(500).json({ message: 'Server error updating payment.' });
     }
 };
+
+export const deleteRental = async (req, res) => {
+    const rentalId = req.params.id;
+    const userId = req.user.id;
+
+    try {
+        const [result] = await pool.query(
+            "UPDATE rentals SET status = 'cancelled' WHERE rental_id = ? AND user_id = ?",
+            [rentalId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Rental not found or access denied.' });
+        }
+
+        res.json({ message: 'Rental cancelled successfully.' });
+
+    } catch (error) {
+        console.error('Error cancelling rental:', error);
+        res.status(500).json({ message: 'Server error cancelling rental.' });
+    }
+};
