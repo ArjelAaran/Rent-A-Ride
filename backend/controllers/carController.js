@@ -32,19 +32,38 @@ export const getCarDetails = async (req, res) => {
 
 export const createRental = async (req, res) => {
     const user_id = req.user.id; 
-    const { carId, startDate, endDate, totalCost,paymentMethod } = req.body;
-const proofOfPayment = req.file ? `/uploads/${req.file.filename}` : null;
+    const { carId, startDate, endDate, totalCost, paymentMethod } = req.body;
+    
+    const proofOfPayment = req.file ? `/uploads/${req.file.filename}` : null;
 
-let status = 'pending';
-    if (paymentMethod === 'online' && proofOfPayment) {
+    let status = 'pending';
+    const methodClean = paymentMethod ? paymentMethod.trim() : '';
+
+    if (methodClean === 'online' && proofOfPayment) {
         status = 'paid';
     }
-   try {
-        console.log(`Creating rental: User ${user_id}, Car ${carId}, Method: ${paymentMethod}`);
 
+    console.log('--- NEW BOOKING REQUEST ---');
+    console.log('User:', user_id);
+    console.log('Method:', paymentMethod);
+    console.log('Proof:', proofOfPayment);
+    console.log('CALCULATED STATUS:', status); 
+
+    try {
         const [result] = await pool.query(
-            'INSERT INTO rentals (user_id, car_id, start_date, end_date, total_cost, status, payment_method, proof_of_payment_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [user_id, carId, startDate, endDate, totalCost, status, paymentMethod, proofOfPayment]
+            `INSERT INTO rentals 
+            (user_id, car_id, start_date, end_date, total_cost, status, payment_method, proof_of_payment_url) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                user_id, 
+                carId, 
+                startDate, 
+                endDate, 
+                totalCost, 
+                status,         
+                paymentMethod, 
+                proofOfPayment
+            ]
         );
         
         res.status(201).json({ 
@@ -108,5 +127,35 @@ export const getRentalById = async (req, res) => {
     } catch (error) {
         console.error('Error fetching rental:', error);
         res.status(500).json({ message: 'Server error fetching rental details' });
+    }
+};
+
+export const uploadRentalPayment = async (req, res) => {
+    const rentalId = req.params.id;
+    const userId = req.user.id;
+    
+    const proofOfPayment = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (!proofOfPayment) {
+        return res.status(400).json({ message: 'No receipt file uploaded.' });
+    }
+
+    try {
+        const [result] = await pool.query(
+            `UPDATE rentals 
+             SET proof_of_payment_url = ?, status = 'paid', payment_method = 'online'
+             WHERE rental_id = ? AND user_id = ?`,
+            [proofOfPayment, rentalId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Rental not found or update failed.' });
+        }
+
+        res.json({ message: 'Payment uploaded successfully. Status updated to Paid.' });
+
+    } catch (error) {
+        console.error('Error uploading payment:', error);
+        res.status(500).json({ message: 'Server error updating payment.' });
     }
 };

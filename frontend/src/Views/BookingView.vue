@@ -36,20 +36,13 @@ const fetchCarDetails = async () => {
 const dailyRate = computed(() => carDetails.value ? parseFloat(carDetails.value.daily_rate) : 0);
 
 const totalCost = computed(() => {
-    if (dailyRate.value <= 0) {
-        return 0;
-    }
+    if (dailyRate.value <= 0) return 0;
     
     const start = new Date(rentalData.startDate);
     const end = new Date(rentalData.endDate);
 
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return 0;
-    }
-    
-    if (start >= end) {
-        return 0;
-    }
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+    if (start >= end) return 0;
     
     const diffTime = end.getTime() - start.getTime(); 
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
@@ -71,6 +64,7 @@ const handleSubmit = async () => {
         message.value = 'Please select a payment method.';
         isSuccess.value = false; return;
     }
+    // Validation: Only require file if "Pay Now" (online) is selected
     if (paymentMethod.value === 'online' && !receiptFile.value) {
         message.value = 'Please upload your GCash payment screenshot.';
         isSuccess.value = false; return;
@@ -85,15 +79,15 @@ const handleSubmit = async () => {
         formData.append('startDate', rentalData.startDate);
         formData.append('endDate', rentalData.endDate);
         formData.append('totalCost', rentalData.totalCost);
-        formData.append('paymentMethod', paymentMethod.value);
+        // Map 'pay_later' to 'online' so the database knows it's a digital payment type
+        formData.append('paymentMethod', paymentMethod.value === 'pay_later' ? 'online' : paymentMethod.value);
         
         if (receiptFile.value) {
             formData.append('receipt', receiptFile.value);
         }
 
-        const response = await apiClient.post('/cars/rentals', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        // Correct: No manual headers here (Axios handles it)
+        const response = await apiClient.post('/cars/rentals', formData); 
 
         router.push(`/booking-success/${response.data.rentalId}`);
 
@@ -142,7 +136,12 @@ onMounted(fetchCarDetails);
             <button type="button" 
                 :class="['pay-btn', paymentMethod === 'online' ? 'active' : '']" 
                 @click="paymentMethod = 'online'">
-                Pay Online (GCash)
+                Pay Now (GCash)
+            </button>
+            <button type="button" 
+                :class="['pay-btn', paymentMethod === 'pay_later' ? 'active' : '']" 
+                @click="paymentMethod = 'pay_later'">
+                Pay Later (Online)
             </button>
         </div>
 
@@ -150,6 +149,14 @@ onMounted(fetchCarDetails);
             <div class="alert-box">
                 <strong>Instructions:</strong> Please pay the full amount at the rental office upon pick-up.
                 <p class="warning">⚠️ Note: If payment is not verified within 12 hours of the booking request, the system will automatically cancel this reservation.</p>
+            </div>
+        </div>
+
+        <div v-if="paymentMethod === 'pay_later'" class="payment-info fade-in">
+            <div class="alert-box">
+                <strong>Instructions:</strong> Your booking will be saved as "Pending". 
+                You can go to your Dashboard later to upload your GCash payment proof.
+                <p class="warning">⚠️ Note: You must pay within 12 hours or the booking is cancelled.</p>
             </div>
         </div>
 
