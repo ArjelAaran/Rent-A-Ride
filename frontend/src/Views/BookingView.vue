@@ -14,7 +14,14 @@ const isSuccess = ref(false);
 const paymentMethod = ref(null);
 const receiptFile = ref(null);
 
-const minDate = new Date().toISOString().split('T')[0];
+const getLocalDateString = () => {
+    const d = new Date();
+    const localTime = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+    return localTime.toISOString().split('T')[0];
+};
+
+const minDate = getLocalDateString();
+
 const rentalData = reactive({
     carId: carId.value,
     startDate: '',
@@ -43,10 +50,10 @@ const totalCost = computed(() => {
     const end = new Date(rentalData.endDate);
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
-    if (start > end) return 0;
+    if (start >= end) return 0;
     
     const diffTime = end.getTime() - start.getTime(); 
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
     
     return diffDays > 0 ? diffDays * dailyRate.value : 0;
 });
@@ -56,38 +63,36 @@ const handleFileChange = (event) => {
 };
 
 const handleSubmit = async () => {
-    rentalData.totalCost = totalCost.value;
+    message.value = '';
+    isSuccess.value = false;
 
-    const start = new Date(rentalData.startDate);
-    const end = new Date(rentalData.endDate);
-    const today = new Date();
-    today.setHours(0,0,0,0); 
+    const todayString = getLocalDateString();
 
-    if (start < today) {
+    if (rentalData.startDate < todayString) {
         message.value = 'Start date cannot be in the past.';
-        isSuccess.value = false; return;
+        return; 
     }
 
-    if (start > end) {
-        message.value = 'End date cannot be before the start date.';
-        isSuccess.value = false; return;
+    if (rentalData.endDate <= rentalData.startDate) {
+        message.value = 'End date must be after the start date.';
+        return;
     }
+    rentalData.totalCost = totalCost.value;
 
     if (rentalData.totalCost <= 0) {
         message.value = 'Please select valid dates.';
-        isSuccess.value = false; return;
+        return;
     }
     if (!paymentMethod.value) {
         message.value = 'Please select a payment method.';
-        isSuccess.value = false; return;
+        return;
     }
     if (paymentMethod.value === 'online' && !receiptFile.value) {
         message.value = 'Please upload your GCash payment screenshot.';
-        isSuccess.value = false; return;
+        return;
     }
 
     loading.value = true;
-    message.value = '';
 
     try {
         const formData = new FormData();
@@ -128,12 +133,24 @@ onMounted(fetchCarDetails);
     <form @submit.prevent="handleSubmit" class="booking-form">
       <div class="form-group">
         <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate" v-model="rentalData.startDate" required />
+        <input 
+            type="date" 
+            id="startDate" 
+            v-model="rentalData.startDate" 
+            :min="minDate"
+            required 
+        />
       </div>
 
       <div class="form-group">
         <label for="endDate">End Date:</label>
-        <input type="date" id="endDate" v-model="rentalData.endDate" required />
+        <input 
+            type="date" 
+            id="endDate" 
+            v-model="rentalData.endDate" 
+            :min="rentalData.startDate || minDate"
+            required 
+        />
       </div>
 
       <p v-if="totalCost > 0" class="total-cost">Total Cost: ₱{{ totalCost.toFixed(2) }}</p>
