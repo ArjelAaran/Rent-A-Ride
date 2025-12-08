@@ -9,7 +9,7 @@ import ProfileView from '../Views/ProfileView.vue';
 import BookingSuccessView from '../Views/BookingSuccessView.vue';
 import TermsView from '../Views/TermsView.vue';
 import FAQView from '../Views/FAQView.vue';
-
+import AddCarView from '../Views/AddCarView.vue';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -28,6 +28,7 @@ const router = createRouter({
     { path: '/booking-success/:id', name: 'booking-success', component: BookingSuccessView },
   { path: '/terms', name: 'terms', component: TermsView },
     { path: '/faq', name: 'faq', component: FAQView },
+    { path: '/list-car', name: 'add-car', component: AddCarView },
   ]
 })
 

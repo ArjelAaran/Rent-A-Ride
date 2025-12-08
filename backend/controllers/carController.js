@@ -181,3 +181,32 @@ export const deleteRental = async (req, res) => {
         res.status(500).json({ message: 'Server error cancelling rental.' });
     }
 };
+
+export const addCar = async (req, res) => {
+    const owner_id = req.user.id; 
+    const { make, model, year, type, dailyRate, description } = req.body;
+    
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (!imageUrl) {
+        return res.status(400).json({ message: 'Car image is required.' });
+    }
+
+    try {
+        const [result] = await pool.query(
+            `INSERT INTO cars 
+            (make, model, year, type, daily_rate, image_url, is_available, owner_id, description) 
+            VALUES (?, ?, ?, ?, ?, ?, TRUE, ?, ?)`,
+            [make, model, year, type, dailyRate, imageUrl, owner_id, description]
+        );
+
+        res.status(201).json({ 
+            message: 'Car listed successfully!', 
+            carId: result.insertId 
+        });
+
+    } catch (error) {
+        console.error('Error adding car:', error);
+        res.status(500).json({ message: 'Server error adding car.' });
+    }
+};
