@@ -32,18 +32,23 @@ export const getCarDetails = async (req, res) => {
 
 export const createRental = async (req, res) => {
     const user_id = req.user.id; 
-    const { carId, startDate, endDate, totalCost } = req.body;
+    const { carId, startDate, endDate, totalCost,paymentMethod } = req.body;
+const proofOfPayment = req.file ? `/uploads/${req.file.filename}` : null;
 
-    try {
-        console.log(`Creating rental for User ${user_id} and Car ${carId} with cost ${totalCost}`);
+let status = 'pending';
+    if (paymentMethod === 'online' && proofOfPayment) {
+        status = 'paid';
+    }
+   try {
+        console.log(`Creating rental: User ${user_id}, Car ${carId}, Method: ${paymentMethod}`);
 
         const [result] = await pool.query(
-            'INSERT INTO rentals (user_id, car_id, start_date, end_date, total_cost, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [user_id, carId, startDate, endDate, totalCost, 'pending']
+            'INSERT INTO rentals (user_id, car_id, start_date, end_date, total_cost, status, payment_method, proof_of_payment_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [user_id, carId, startDate, endDate, totalCost, status, paymentMethod, proofOfPayment]
         );
         
         res.status(201).json({ 
-            message: 'Rental booked successfully. Status: Pending', 
+            message: 'Rental booked successfully.', 
             rentalId: result.insertId 
         });
 
