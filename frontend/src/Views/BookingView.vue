@@ -39,8 +39,8 @@ const route = useRoute();
 const router = useRouter();
 const carId = ref(route.params.carId);
 const carDetails = ref(null);
-const loading = ref(false); // For form submission
-const loadingCarDetails = ref(true); // For initial data fetch
+const loading = ref(false); 
+const loadingCarDetails = ref(true); 
 const message = ref('');
 const isSuccess = ref(false);
 
@@ -96,7 +96,6 @@ const handleSubmit = async () => {
         return;
     }
     
-    // Ensure the token is present
     const token = localStorage.getItem('userToken');
     if (!token) {
         message.value = 'Authentication failed. Please log in again.';
@@ -108,18 +107,14 @@ const handleSubmit = async () => {
     message.value = '';
 
     try {
-        // API call to POST /api/cars/rentals (The third required form submission)
-        await apiClient.post('/cars/rentals', rentalData, {
-            headers: {
-                Authorization: `Bearer ${token}`, 
-            },
+        const response = await apiClient.post('/cars/rentals', rentalData, {
+            headers: { Authorization: `Bearer ${token}` },
         });
 
         message.value = 'Rental booked successfully!';
         isSuccess.value = true;
         
-        setTimeout(() => router.push('/dashboard'), 2000); 
-
+        router.push(`/booking-success/${response.data.rental_id}`);
     } catch (err) {
         message.value = 'Booking failed. Check backend logs for validation errors.';
         isSuccess.value = false;

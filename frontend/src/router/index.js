@@ -6,6 +6,7 @@ import AboutView from '../Views/AboutView.vue'
 import ContactView from '../Views/ContactView.vue'
 import CustomerDashboardView from '../Views/CustomerDashboardView.vue'
 import ProfileView from '../Views/ProfileView.vue';
+import BookingSuccessView from '../Views/BookingSuccessView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,7 @@ const router = createRouter({
       name: 'booking',
       component: () => import('../views/BookingView.vue') 
     },
+    { path: '/booking-success/:id', name: 'booking-success', component: BookingSuccessView },
   ]
 })
 

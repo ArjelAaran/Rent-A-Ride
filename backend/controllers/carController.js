@@ -1,6 +1,5 @@
 import pool from '../db.js';
 
-// --- READ: Get all available cars (Used by HomeView.vue) ---
 export const getAvailableCars = async (req, res) => {
     try {
         const [cars] = await pool.query('SELECT car_id, model, make, year, type, daily_rate, image_url FROM cars WHERE is_available = TRUE');
@@ -11,11 +10,9 @@ export const getAvailableCars = async (req, res) => {
     }
 };
 
-// --- READ: Get single car details by ID (Used by BookingView.vue) ---
 export const getCarDetails = async (req, res) => {
-    const { carId } = req.params; // Get carId from the URL parameter
+    const { carId } = req.params; 
 
-    // Query to select necessary details for the booking form
     const sql = 'SELECT car_id, make, model, daily_rate, image_url FROM cars WHERE car_id = ?';
 
     try {
@@ -25,7 +22,6 @@ export const getCarDetails = async (req, res) => {
             return res.status(404).json({ message: 'Car not found.' });
         }
 
-        // Return the single car object
         res.status(200).json(results[0]);
 
     } catch (error) {
@@ -34,14 +30,11 @@ export const getCarDetails = async (req, res) => {
     }
 };
 
-// --- CREATE: Create a new rental booking (Used by BookingView.vue form submission) ---
 export const createRental = async (req, res) => {
-    // req.user.id is populated by the authMiddleware from the JWT token
     const user_id = req.user.id; 
     const { carId, startDate, endDate, totalCost } = req.body;
 
     try {
-        // Log the received data for debugging
         console.log(`Creating rental for User ${user_id} and Car ${carId} with cost ${totalCost}`);
 
         const [result] = await pool.query(
@@ -60,11 +53,9 @@ export const createRental = async (req, res) => {
     }
 };
 
-// --- READ: Get rentals for a specific user (Used by CustomerDashboardView.vue) ---
 export const getUserRentals = async (req, res) => {
     const user_id = req.params.userId;
 
-    // Security Check: Prevent a user from viewing another user's rentals
     if (user_id != req.user.id) {
         return res.status(403).json({ message: 'Forbidden access to another user\'s rentals.' });
     }
@@ -86,5 +77,31 @@ export const getUserRentals = async (req, res) => {
     } catch (error) {
         console.error('Error fetching user rentals:', error);
         res.status(500).json({ message: 'Server error fetching rentals' });
+    }
+};
+
+export const getRentalById = async (req, res) => {
+    const rentalId = req.params.id;
+    const userId = req.user.id; 
+
+    try {
+        const [rentals] = await pool.query(
+            `SELECT 
+                r.rental_id, r.start_date, r.end_date, r.total_cost, r.status,
+                c.make, c.model, c.year, c.image_url, c.daily_rate
+             FROM rentals r
+             JOIN cars c ON r.car_id = c.car_id
+             WHERE r.rental_id = ? AND r.user_id = ?`,
+            [rentalId, userId]
+        );
+
+        if (rentals.length === 0) {
+            return res.status(404).json({ message: 'Rental not found or access denied.' });
+        }
+
+        res.json(rentals[0]);
+    } catch (error) {
+        console.error('Error fetching rental:', error);
+        res.status(500).json({ message: 'Server error fetching rental details' });
     }
 };
