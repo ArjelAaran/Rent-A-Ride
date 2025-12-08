@@ -31,34 +31,29 @@ router.afterEach(() => {
       <nav class="navbar">
         <RouterLink to="/" class="logo">RentARide</RouterLink>
         <div class="nav-links">
+          
           <template v-if="isLoggedIn">
             <RouterLink to="/" class="nav-item">Home</RouterLink>
             <RouterLink to="/about" class="nav-item">About Us</RouterLink>
             <RouterLink to="/contact" class="nav-item">Contact Us</RouterLink>
-            <RouterLink to="/dashboard" class="nav-item">Profile</RouterLink>
+            
             <RouterLink to="/dashboard" class="nav-item">Dashboard</RouterLink>
             <RouterLink to="/profile" class="nav-item">Edit Profile</RouterLink>
+            
             <button @click="handleLogout" class="nav-btn logout-btn">Log out</button>
           </template>
+
           <template v-else>
-            <RouterLink to="/">Home</RouterLink>
+            <RouterLink to="/" class="nav-item">Home</RouterLink>
             <RouterLink to="/about" class="nav-item">About Us</RouterLink>
             <RouterLink to="/contact" class="nav-item">Contact Us</RouterLink>
             <RouterLink to="/login" class="nav-item">Login</RouterLink>
             <RouterLink to="/register" class="nav-btn">Register</RouterLink>
           </template>
+
         </div>
       </nav>
     </header>
-
-    <RouterView />
-    
-  </div>
-</template>
-<template>
-  <div id="app-wrapper">
-    <header>
-      </header>
 
     <div class="main-content">
         <RouterView />
@@ -74,6 +69,7 @@ router.afterEach(() => {
             </div>
         </div>
     </footer>
+    
   </div>
 </template>
 
