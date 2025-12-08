@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer'; 
 import path from 'path';     
-import { getAvailableCars, createRental, getCarDetails, getUserRentals, getRentalById, uploadRentalPayment, deleteRental, addCar } from '../controllers/carController.js';
+import { getAvailableCars, createRental, getCarDetails, getUserRentals, getRentalById, uploadRentalPayment, deleteRental, addCar, getMyCars, deleteCarListing } from '../controllers/carController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -24,6 +24,10 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ storage, fileFilter }); 
+
+router.get('/my-listings', protect, getMyCars);
+
+router.delete('/:id', protect, deleteCarListing);
 
 router.get('/:carId', getCarDetails);
 

@@ -210,3 +210,42 @@ export const addCar = async (req, res) => {
         res.status(500).json({ message: 'Server error adding car.' });
     }
 };
+export const getMyCars = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const [cars] = await pool.query(
+            'SELECT * FROM cars WHERE owner_id = ? ORDER BY car_id DESC',
+            [userId]
+        );
+        res.json(cars);
+    } catch (error) {
+        console.error('Error fetching my cars:', error);
+        res.status(500).json({ message: 'Server error fetching your cars' });
+    }
+};
+
+export const deleteCarListing = async (req, res) => {
+    const carId = req.params.id;
+    const userId = req.user.id;
+
+    try {
+        const [result] = await pool.query(
+            'DELETE FROM cars WHERE car_id = ? AND owner_id = ?',
+            [carId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Car not found or you do not have permission to delete it.' });
+        }
+
+        res.json({ message: 'Car listing deleted successfully.' });
+
+    } catch (error) {
+        console.error('Error deleting car:', error);
+        if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+            return res.status(400).json({ message: 'Cannot delete this car because it has existing rental records.' });
+        }
+        res.status(500).json({ message: 'Server error deleting car.' });
+    }
+};
