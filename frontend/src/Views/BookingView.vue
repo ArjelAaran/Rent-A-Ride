@@ -14,6 +14,7 @@ const isSuccess = ref(false);
 const paymentMethod = ref(null);
 const receiptFile = ref(null);
 
+const minDate = new Date().toISOString().split('T')[0];
 const rentalData = reactive({
     carId: carId.value,
     startDate: '',
@@ -42,10 +43,10 @@ const totalCost = computed(() => {
     const end = new Date(rentalData.endDate);
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
-    if (start >= end) return 0;
+    if (start > end) return 0;
     
     const diffTime = end.getTime() - start.getTime(); 
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays > 0 ? diffDays * dailyRate.value : 0;
 });
@@ -56,6 +57,22 @@ const handleFileChange = (event) => {
 
 const handleSubmit = async () => {
     rentalData.totalCost = totalCost.value;
+
+    const start = new Date(rentalData.startDate);
+    const end = new Date(rentalData.endDate);
+    const today = new Date();
+    today.setHours(0,0,0,0); 
+
+    if (start < today) {
+        message.value = 'Start date cannot be in the past.';
+        isSuccess.value = false; return;
+    }
+
+    if (start > end) {
+        message.value = 'End date cannot be before the start date.';
+        isSuccess.value = false; return;
+    }
+
     if (rentalData.totalCost <= 0) {
         message.value = 'Please select valid dates.';
         isSuccess.value = false; return;
@@ -64,7 +81,6 @@ const handleSubmit = async () => {
         message.value = 'Please select a payment method.';
         isSuccess.value = false; return;
     }
-    // Validation: Only require file if "Pay Now" (online) is selected
     if (paymentMethod.value === 'online' && !receiptFile.value) {
         message.value = 'Please upload your GCash payment screenshot.';
         isSuccess.value = false; return;
@@ -79,14 +95,12 @@ const handleSubmit = async () => {
         formData.append('startDate', rentalData.startDate);
         formData.append('endDate', rentalData.endDate);
         formData.append('totalCost', rentalData.totalCost);
-        // Map 'pay_later' to 'online' so the database knows it's a digital payment type
         formData.append('paymentMethod', paymentMethod.value === 'pay_later' ? 'online' : paymentMethod.value);
         
         if (receiptFile.value) {
             formData.append('receipt', receiptFile.value);
         }
 
-        // Correct: No manual headers here (Axios handles it)
         const response = await apiClient.post('/cars/rentals', formData); 
 
         router.push(`/booking-success/${response.data.rentalId}`);
