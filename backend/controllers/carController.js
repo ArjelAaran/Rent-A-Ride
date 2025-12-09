@@ -29,7 +29,6 @@ export const getCarDetails = async (req, res) => {
         res.status(500).json({ message: 'Server error while fetching car details.' });
     }
 };
-
 export const createRental = async (req, res) => {
     const user_id = req.user.id; 
     const { carId, startDate, endDate, totalCost, paymentMethod } = req.body;
@@ -45,11 +44,24 @@ export const createRental = async (req, res) => {
 
     console.log('--- NEW BOOKING REQUEST ---');
     console.log('User:', user_id);
-    console.log('Method:', paymentMethod);
-    console.log('Proof:', proofOfPayment);
-    console.log('CALCULATED STATUS:', status); 
+    console.log('Dates:', startDate, 'to', endDate);
 
     try {
+        const [conflicts] = await pool.query(
+            `SELECT rental_id FROM rentals 
+             WHERE car_id = ? 
+             AND status != 'cancelled'
+             AND (start_date <= ? AND end_date >= ?)`,
+            [carId, endDate, startDate]
+        );
+
+        if (conflicts.length > 0) {
+            console.log('CONFLICT DETECTED: Car is already booked.');
+            return res.status(400).json({ 
+                message: 'This car is unavailable for the selected dates. Please choose different dates.' 
+            });
+        }
+
         const [result] = await pool.query(
             `INSERT INTO rentals 
             (user_id, car_id, start_date, end_date, total_cost, status, payment_method, proof_of_payment_url) 
@@ -61,7 +73,7 @@ export const createRental = async (req, res) => {
                 endDate, 
                 totalCost, 
                 status,         
-                paymentMethod, 
+                methodClean, 
                 proofOfPayment
             ]
         );
@@ -76,7 +88,6 @@ export const createRental = async (req, res) => {
         res.status(500).json({ message: 'Server error booking rental' });
     }
 };
-
 export const getUserRentals = async (req, res) => {
     const user_id = req.params.userId;
 
