@@ -16,6 +16,14 @@ const payFile = ref(null);
 const payLoading = ref(false);
 const payMessage = ref('');
 
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+};
 
 const fetchData = async (userId) => {
     loading.value = true;
@@ -68,6 +76,8 @@ const handleDeleteCar = async (carId) => {
         alert(error.response?.data?.message || "Failed to delete listing.");
     }
 };
+
+
 const openPayModal = (rental) => {
     selectedRental.value = rental;
     showPayModal.value = true;
@@ -101,7 +111,7 @@ const submitPayment = async () => {
         payMessage.value = "Payment Uploaded!";
         setTimeout(() => {
             closePayModal();
-            fetchData(user.value.id);
+            fetchData(user.value.id); 
         }, 1000);
 
     } catch (error) {
@@ -148,8 +158,11 @@ onMounted(async () => {
         <tbody>
             <tr v-for="rental in rentals" :key="rental.rental_id">
                 <td>{{ rental.make }} {{ rental.model }}</td>
-                <td>{{ rental.start_date }} <br>to {{ rental.end_date }}</td>
-                <td>₱{{ rental.total_cost.toLocaleString() }}</td>
+                <td>
+                    {{ formatDate(rental.start_date) }} <br>to 
+                    {{ formatDate(rental.end_date) }}
+                </td>
+                <td>₱{{ parseFloat(rental.total_cost).toLocaleString() }}</td>
                 <td>
                     <span :class="['status-' + rental.status]">{{ rental.status }}</span>
                 </td>
