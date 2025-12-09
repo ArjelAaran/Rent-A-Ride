@@ -14,13 +14,14 @@ const isSuccess = ref(false);
 const paymentMethod = ref(null);
 const receiptFile = ref(null);
 
-const getLocalDateString = () => {
+const getMinStartDate = () => {
     const d = new Date();
+    d.setDate(d.getDate() + 1); 
     const localTime = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
     return localTime.toISOString().split('T')[0];
 };
 
-const minDate = getLocalDateString();
+const minDate = getMinStartDate();
 
 const rentalData = reactive({
     carId: carId.value,
@@ -65,11 +66,8 @@ const handleFileChange = (event) => {
 const handleSubmit = async () => {
     message.value = '';
     isSuccess.value = false;
-
-    const todayString = getLocalDateString();
-
-    if (rentalData.startDate < todayString) {
-        message.value = 'Start date cannot be in the past.';
+    if (rentalData.startDate < minDate) {
+        message.value = 'Bookings must be made at least 1 day in advance.';
         return; 
     }
 
@@ -77,6 +75,7 @@ const handleSubmit = async () => {
         message.value = 'End date must be after the start date.';
         return;
     }
+
     rentalData.totalCost = totalCost.value;
 
     if (rentalData.totalCost <= 0) {
@@ -131,6 +130,11 @@ onMounted(fetchCarDetails);
     <div v-else class="message">Loading car details...</div>
 
     <form @submit.prevent="handleSubmit" class="booking-form">
+      
+      <div class="info-box">
+        <p><strong>⚠️ Policy Notice:</strong> Same-day renting is not allowed. We require at least 24 hours to verify your identity and payment.</p>
+      </div>
+
       <div class="form-group">
         <label for="startDate">Start Date:</label>
         <input 
@@ -223,6 +227,16 @@ onMounted(fetchCarDetails);
 .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
 .form-group input { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
 .total-cost { font-size: 1.5rem; font-weight: 800; margin-top: 1rem; color: #0056b3; text-align: center; }
+
+.info-box {
+    background-color: #e0f2fe;
+    color: #0c4a6e;
+    border: 1px solid #bae6fd;
+    padding: 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
 
 .payment-section { margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem; }
 .payment-buttons { display: flex; gap: 10px; margin-bottom: 1.5rem; }
