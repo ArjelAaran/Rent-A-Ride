@@ -4,22 +4,23 @@
     
     <div class="faq-item">
         <h3>What documents do I need to rent a car?</h3>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        <p>Renters will need a valid government-issued ID and a corresponding driver's license to complete the rental agreement.
+</p>
     </div>
 
     <div class="faq-item">
         <h3>Is fuel included in the price?</h3>
-        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
+        <p>Fuel is not included in the daily rental rate, and the renter is  responsible for returning the vehicle with the same fuel level as when it was picked up.</p>
     </div>
 
     <div class="faq-item">
         <h3>What happens if I return the car late?</h3>
-        <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+        <p>Returning the vehicle after the agreed-upon drop-off time will subject the renter to late fees, which are calculated based on the rental agreement's terms.</p>
     </div>
 
     <div class="faq-item">
         <h3>Can I cancel my booking?</h3>
-        <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+        <p>Yes, you can modify bookings in accordance with the company's cancellation policy (12hr window time), though penalties may apply depending on the proximity to the rental start date.</p>
     </div>
   </div>
 </template>
